@@ -1,6 +1,3 @@
-const std = @import("std");
-const expectEqual = std.testing.expectEqual;
-
 /// Unlike the @bitCast builtin, this supports casting to/from enums, and is easier to read when used inline;
 /// instead of `@as(T, @bitCast(x))` you can just do `bits.as(T, x)`
 pub fn as(comptime T: type, i: anytype) T {
@@ -200,3 +197,6 @@ fn expectSignedness(comptime T: type, comptime signedness: std.builtin.Signednes
 fn expectInt(comptime T: type) void {
     if (@typeInfo(T) != .Int) @compileError("Expected integer");
 }
+
+const expectEqual = std.testing.expectEqual;
+const std = @import("std");
