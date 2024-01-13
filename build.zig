@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     _ = b.addModule("bits", .{
-        .source_file = .{ .path = "bits.zig" },
+        .root_source_file = .{ .path = "bits.zig" },
     });
 
     const tests = b.addTest(.{
