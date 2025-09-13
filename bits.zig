@@ -6,17 +6,17 @@ pub fn as(comptime T: type, i: anytype) T {
         @compileError("Can't cast between types of different sizes");
     }
     return switch (@typeInfo(I)) {
-        .Enum => switch (@typeInfo(T)) {
-            .Enum => |info| @enumFromInt(@as(info.tag_type, @bitCast(@intFromEnum(i)))),
+        .@"enum" => switch (@typeInfo(T)) {
+            .@"enum" => |info| @enumFromInt(@as(info.tag_type, @bitCast(@intFromEnum(i)))),
             else => @bitCast(@intFromEnum(i)),
         },
         else => switch (@typeInfo(T)) {
-            .Enum => |info| @enumFromInt(@as(info.tag_type, @bitCast(i))),
+            .@"enum" => |info| @enumFromInt(@as(info.tag_type, @bitCast(i))),
             else => @bitCast(i),
         },
     };
 }
-test "as" {
+test as {
     const TestEnum = enum (u8) {
         ff = 0xFF,
     };
@@ -29,8 +29,8 @@ test "as" {
 
 pub fn zx(comptime T: type, n: anytype) T {
     const N = @TypeOf(n);
-    expectInt(T);
-    expectInt(N);
+    expect_int(T);
+    expect_int(N);
 
     if (@bitSizeOf(T) == @bitSizeOf(N)) return n;
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
@@ -42,7 +42,7 @@ pub fn zx(comptime T: type, n: anytype) T {
     const tu: TU = nu;
     return @bitCast(tu);
 }
-test "zx" {
+test zx {
     try expectEqual(@as(u32, 0xFF), zx(u32, @as(u8, 0xFF)));
     try expectEqual(@as(i32, 0xFF), zx(i32, @as(u8, 0xFF)));
     try expectEqual(@as(u32, 0xFF), zx(u32, @as(i8, -1)));
@@ -52,8 +52,8 @@ test "zx" {
 
 pub fn sx(comptime T: type, n: anytype) T {
     const N = @TypeOf(n);
-    expectInt(T);
-    expectInt(N);
+    expect_int(T);
+    expect_int(N);
 
     if (@bitSizeOf(T) == @bitSizeOf(N)) return @bitCast(n);
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
@@ -65,7 +65,7 @@ pub fn sx(comptime T: type, n: anytype) T {
     const ts: TS = ns;
     return @bitCast(ts);
 }
-test "sx" {
+test sx {
     try expectEqual(@as(i32, -1), sx(i32, @as(i8, -1)));
     try expectEqual(@as(i32, -1), sx(i32, @as(u8, 0xFF)));
     try expectEqual(@as(i32, -1), sx(i32, @as(i7, -1)));
@@ -87,8 +87,8 @@ test "sx" {
 
 pub fn _1x(comptime T: type, n: anytype) T {
     const N = @TypeOf(n);
-    expectInt(T);
-    expectInt(N);
+    expect_int(T);
+    expect_int(N);
 
     if (@bitSizeOf(T) == @bitSizeOf(N)) return n;
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
@@ -102,7 +102,7 @@ pub fn _1x(comptime T: type, n: anytype) T {
     const tu: TU = nu;
     return @bitCast(upper | tu);
 }
-test "1x" {
+test _1x {
     try expectEqual(@as(i32, -1), _1x(i32, @as(i8, -1)));
     try expectEqual(@as(i32, -1), _1x(i32, @as(u8, 0xFF)));
     try expectEqual(@as(i32, -1), _1x(i32, @as(i7, -1)));
@@ -138,17 +138,17 @@ pub fn concat(tuple: anytype) ConcatResultType(@TypeOf(tuple)) {
 }
 fn ConcatResultType(comptime T: type) type {
     comptime var bits = 0;
-    const info = @typeInfo(T).Struct;
+    const info = @typeInfo(T).@"struct";
     if (!info.is_tuple) {
         @compileError("Expected tuple");
     }
     inline for (info.fields) |field| {
-        expectSignedness(field.type, .unsigned);
+        expect_signedness(field.type, .unsigned);
         bits += @bitSizeOf(field.type);
     }
     return std.meta.Int(.unsigned, bits);
 }
-test "concat" {
+test concat {
     try expectEqual(@as(u16, 0x9901), concat(.{
         @as(u8, 0x01),
         @as(u8, 0x99),
@@ -161,8 +161,8 @@ test "concat" {
     }));
 }
 
-pub fn swapHalves(comptime T: type, n: T) T {
-    expectSignedness(T, .unsigned);
+pub fn swap_halves(comptime T: type, n: T) T {
+    expect_signedness(T, .unsigned);
     if ((@bitSizeOf(T) & 1) == 1) @compileError("Expected even bit width");
 
     const h_bits = @bitSizeOf(T) / 2;
@@ -173,17 +173,94 @@ pub fn swapHalves(comptime T: type, n: T) T {
 
     return @shlExact(@as(T, low), h_bits) | high;
 }
-test "swapHalves" {
-    try expectEqual(@as(u32, 0xFFFF), swapHalves(u32, 0xFFFF0000));
-    try expectEqual(@as(u32, 0x56781234), swapHalves(u32, 0x12345678));
-    try expectEqual(@as(u6, 0x8), swapHalves(u6, 0x1));
+test swap_halves {
+    try expectEqual(@as(u32, 0xFFFF), swap_halves(u32, 0xFFFF0000));
+    try expectEqual(@as(u32, 0x56781234), swap_halves(u32, 0x12345678));
+    try expectEqual(@as(u6, 0x8), swap_halves(u6, 0x1));
+}
+
+pub fn undefined_bits_iterator(undefined_bits: anytype, constant_bits: anytype) Undefined_Bits_Iterator(@TypeOf(undefined_bits, constant_bits)) {
+    return .{
+        .undefined_bits = undefined_bits,
+        .constant_bits = constant_bits,
+    };
+}
+
+pub fn Undefined_Bits_Iterator(comptime T: type) type {
+    std.debug.assert(@typeInfo(T) == .int);
+    return struct {
+        undefined_bits: T, // for each set bit in this mask, we'll generate permutations for both states of that bit
+        constant_bits: T, // any bits that are set here will also be set in each result value
+        last_permutation: ?T = null,
+
+        pub fn next(self: *@This()) ?T {
+            if (self.last_permutation) |last| {
+                const mask = self.undefined_bits;
+                const remaining_bits = mask ^ last;
+                if (remaining_bits == 0) return null;
+                const bits_to_toggle = (remaining_bits ^ (remaining_bits - 1)) & mask;
+                const next_value = last ^ bits_to_toggle;
+                self.last_permutation = next_value;
+                return next_value | self.constant_bits;
+            } else {
+                self.last_permutation = 0;
+                return self.constant_bits;
+            }
+        }
+    };
+}
+
+test undefined_bits_iterator {
+    var iter = undefined_bits_iterator(@as(u32, 0xFFFF), 0);
+    for (0..0x10000) |expected| {
+        try std.testing.expectEqual(expected, iter.next().?);
+    }
+    try std.testing.expectEqual(null, iter.next());
+
+    iter = .{
+        .undefined_bits = 0b0000_0011_0100_1001,
+        .constant_bits  = 0b1111_0000_0011_0000,
+    };
+    try std.testing.expectEqual(0b1111_0000_0011_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0000_0011_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0000_0011_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0000_0011_1001, iter.next());
+    try std.testing.expectEqual(0b1111_0000_0111_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0000_0111_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0000_0111_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0000_0111_1001, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0011_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0011_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0011_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0011_1001, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0111_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0111_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0111_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0001_0111_1001, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0011_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0011_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0011_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0011_1001, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0111_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0111_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0111_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0010_0111_1001, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0011_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0011_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0011_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0011_1001, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0111_0000, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0111_0001, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0111_1000, iter.next());
+    try std.testing.expectEqual(0b1111_0011_0111_1001, iter.next());
+    try std.testing.expectEqual(null, iter.next());
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-fn expectSignedness(comptime T: type, comptime signedness: std.builtin.Signedness) void {
+fn expect_signedness(comptime T: type, comptime signedness: std.builtin.Signedness) void {
     switch (@typeInfo(T)) {
-        .Int => |info| if (info.signedness == signedness) return,
+        .int => |info| if (info.signedness == signedness) return,
         else => {},
     }
 
@@ -194,8 +271,8 @@ fn expectSignedness(comptime T: type, comptime signedness: std.builtin.Signednes
     }
 }
 
-fn expectInt(comptime T: type) void {
-    if (@typeInfo(T) != .Int) @compileError("Expected integer");
+fn expect_int(comptime T: type) void {
+    if (@typeInfo(T) != .int) @compileError("Expected integer");
 }
 
 const expectEqual = std.testing.expectEqual;

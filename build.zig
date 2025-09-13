@@ -2,15 +2,15 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     _ = b.addModule("bits", .{
-        .root_source_file = .{ .path = "bits.zig" },
+        .root_source_file = b.path("bits.zig"),
     });
 
     const tests = b.addTest(.{
-        .root_source_file = .{ .path = "bits.zig"},
-        .target = b.standardTargetOptions(.{}),
-        .optimize = b.standardOptimizeOption(.{}),
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("bits.zig"),
+            .target = b.standardTargetOptions(.{}),
+            .optimize = b.standardOptimizeOption(.{}),
+        }),
     });
-    const run_tests = b.addRunArtifact(tests);
-    const test_step = b.step("test", "Run all tests");
-    test_step.dependOn(&run_tests.step);
+    b.step("test", "Run all tests").dependOn(&b.addRunArtifact(tests).step);
 }

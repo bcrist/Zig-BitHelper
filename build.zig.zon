@@ -1,7 +1,8 @@
 .{
-    .name = "Zig-BitHelper",
+    .name = .bit_helper,
     .version = "1.0.1",
-    .minimum_zig_version = "0.12.0-dev.2063+804cee3b9",
+    .minimum_zig_version = "0.15.1",
+    .fingerprint = 0xd2a57e3e63bc70b,
     .dependencies = .{},
     .paths = .{
         "build.zig",
