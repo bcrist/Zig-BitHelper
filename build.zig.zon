@@ -1,12 +1,13 @@
 .{
     .name = .bit_helper,
+    .fingerprint = 0xd2a57e3e63bc70b,
     .version = "1.0.1",
     .minimum_zig_version = "0.15.1",
-    .fingerprint = 0xd2a57e3e63bc70b,
     .dependencies = .{},
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "bits.zig",
+        "license",
     },
 }
