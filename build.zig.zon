@@ -2,7 +2,7 @@
     .name = .bit_helper,
     .fingerprint = 0xd2a57e3e63bc70b,
     .version = "1.0.1",
-    .minimum_zig_version = "0.15.1",
+    .minimum_zig_version = "0.16.0",
     .dependencies = .{},
     .paths = .{
         "build.zig",
