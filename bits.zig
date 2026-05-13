@@ -35,8 +35,8 @@ pub fn zx(comptime T: type, n: anytype) T {
     if (@bitSizeOf(T) == @bitSizeOf(N)) return n;
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
 
-    const NU = std.meta.Int(.unsigned, @bitSizeOf(N));
-    const TU = std.meta.Int(.unsigned, @bitSizeOf(T));
+    const NU = @Int(.unsigned, @bitSizeOf(N));
+    const TU = @Int(.unsigned, @bitSizeOf(T));
 
     const nu: NU = @bitCast(n);
     const tu: TU = nu;
@@ -58,8 +58,8 @@ pub fn sx(comptime T: type, n: anytype) T {
     if (@bitSizeOf(T) == @bitSizeOf(N)) return @bitCast(n);
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
 
-    const NS = std.meta.Int(.signed, @bitSizeOf(N));
-    const TS = std.meta.Int(.signed, @bitSizeOf(T));
+    const NS = @Int(.signed, @bitSizeOf(N));
+    const TS = @Int(.signed, @bitSizeOf(T));
 
     const ns: NS = @bitCast(n);
     const ts: TS = ns;
@@ -93,8 +93,8 @@ pub fn _1x(comptime T: type, n: anytype) T {
     if (@bitSizeOf(T) == @bitSizeOf(N)) return n;
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
 
-    const NU = std.meta.Int(.unsigned, @bitSizeOf(N));
-    const TU = std.meta.Int(.unsigned, @bitSizeOf(T));
+    const NU = @Int(.unsigned, @bitSizeOf(N));
+    const TU = @Int(.unsigned, @bitSizeOf(T));
 
     const upper = ~@as(TU, 0) ^ ~@as(NU, 0);
 
@@ -146,7 +146,7 @@ fn ConcatResultType(comptime T: type) type {
         expect_signedness(field.type, .unsigned);
         bits += @bitSizeOf(field.type);
     }
-    return std.meta.Int(.unsigned, bits);
+    return @Int(.unsigned, bits);
 }
 test concat {
     try expectEqual(@as(u16, 0x9901), concat(.{
@@ -166,7 +166,7 @@ pub fn swap_halves(comptime T: type, n: T) T {
     if ((@bitSizeOf(T) & 1) == 1) @compileError("Expected even bit width");
 
     const h_bits = @bitSizeOf(T) / 2;
-    const H = std.meta.Int(.unsigned, h_bits);
+    const H = @Int(.unsigned, h_bits);
 
     const low: H = @truncate(n);
     const high: H = @truncate(n >> h_bits);
