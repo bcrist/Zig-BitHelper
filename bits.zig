@@ -32,7 +32,9 @@ pub fn zx(comptime T: type, n: anytype) T {
     expect_int(T);
     expect_int(N);
 
-    if (@bitSizeOf(T) == @bitSizeOf(N)) return n;
+    if (T == N) return n;
+
+    if (@bitSizeOf(T) == @bitSizeOf(N)) @compileError("Cannot change signedness without expanding bit width; use @bitCast() instead");
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
 
     const NU = @Int(.unsigned, @bitSizeOf(N));
@@ -55,7 +57,9 @@ pub fn sx(comptime T: type, n: anytype) T {
     expect_int(T);
     expect_int(N);
 
-    if (@bitSizeOf(T) == @bitSizeOf(N)) return @bitCast(n);
+    if (T == N) return n;
+
+    if (@bitSizeOf(T) == @bitSizeOf(N)) @compileError("Cannot change signedness without expanding bit width; use @bitCast() instead");
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
 
     const NS = @Int(.signed, @bitSizeOf(N));
@@ -90,7 +94,9 @@ pub fn _1x(comptime T: type, n: anytype) T {
     expect_int(T);
     expect_int(N);
 
-    if (@bitSizeOf(T) == @bitSizeOf(N)) return n;
+    if (T == N) return n;
+
+    if (@bitSizeOf(T) == @bitSizeOf(N)) @compileError("Cannot change signedness without expanding bit width; use @bitCast() instead");
     if (@bitSizeOf(T) < @bitSizeOf(N)) @compileError("Cannot reduce width; use @truncate() instead");
 
     const NU = @Int(.unsigned, @bitSizeOf(N));
