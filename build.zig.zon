@@ -1,8 +1,8 @@
 .{
     .name = .bit_helper,
     .fingerprint = 0xd2a57e3e63bc70b,
-    .version = "1.0.2",
-    .minimum_zig_version = "0.16.0",
+    .version = "1.0.3",
+    .minimum_zig_version = "0.17.0-dev.812+5434f85c4",
     .dependencies = .{},
     .paths = .{
         "build.zig",

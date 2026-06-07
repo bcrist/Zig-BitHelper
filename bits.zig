@@ -148,9 +148,9 @@ fn ConcatResultType(comptime T: type) type {
     if (!info.is_tuple) {
         @compileError("Expected tuple");
     }
-    inline for (info.fields) |field| {
-        expect_signedness(field.type, .unsigned);
-        bits += @bitSizeOf(field.type);
+    inline for (info.field_types) |field_type| {
+        expect_signedness(field_type, .unsigned);
+        bits += @bitSizeOf(field_type);
     }
     return @Int(.unsigned, bits);
 }
