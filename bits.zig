@@ -263,7 +263,7 @@ test undefined_bits_iterator {
 
 //////////////////////////////////////////////////////////////////////////////
 
-fn expect_signedness(comptime T: type, comptime signedness: std.builtin.Signedness) void {
+fn expect_signedness(comptime T: type, comptime signedness: std.lang.Signedness) void {
     switch (@typeInfo(T)) {
         .int => |info| if (info.signedness == signedness) return,
         else => {},
