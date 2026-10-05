@@ -5,19 +5,18 @@ pub fn as(comptime T: type, i: anytype) T {
     if (@bitSizeOf(T) != @bitSizeOf(I)) {
         @compileError("Can't cast between types of different sizes");
     }
-    return switch (@typeInfo(I)) {
-        .@"enum" => switch (@typeInfo(T)) {
-            .@"enum" => |info| @enumFromInt(@as(info.tag_type, @bitCast(@intFromEnum(i)))),
-            else => @bitCast(@intFromEnum(i)),
-        },
-        else => switch (@typeInfo(T)) {
-            .@"enum" => |info| @enumFromInt(@as(info.tag_type, @bitCast(i))),
-            else => @bitCast(i),
-        },
+    const backing = switch (@typeInfo(I)) {
+        .@"enum", .@"struct", .@"union" => @backingInt(i),
+        else => i,
+    };
+
+    return switch (@typeInfo(T)) {
+        .@"enum", .@"struct", .@"union" => @fromBackingInt(@bitCast(backing)),
+        else => @bitCast(backing),
     };
 }
 test as {
-    const TestEnum = enum (u8) {
+    const TestEnum = enum(u8) {
         ff = 0xFF,
     };
 
@@ -225,7 +224,7 @@ test undefined_bits_iterator {
 
     iter = .{
         .undefined_bits = 0b0000_0011_0100_1001,
-        .constant_bits  = 0b1111_0000_0011_0000,
+        .constant_bits = 0b1111_0000_0011_0000,
     };
     try std.testing.expectEqual(0b1111_0000_0011_0000, iter.next());
     try std.testing.expectEqual(0b1111_0000_0011_0001, iter.next());
